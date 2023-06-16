@@ -1,9 +1,9 @@
 writers: file,stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
 logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
-logger_file: log/foo.log
+logger_file: logs/foo.log
 log_format_text: true # format `false` will format json, `true` will show std
 rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max
-log_rotate_date: 1 # max 10 days, grather than will change to 1, rotate date, coordinate `log_rotate_date: daily`
-log_rotate_size: 8 # max 64M, grather than will change to 10, rotate size，coordinate `rollingPolicy: size`
-log_backup_count: 7 # max 100 files, gahter than will change to 7, log system will compress the log file when log reaches rotate set, this set is max file count
+log_rotate_date: 1 # max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
+log_rotate_size: 8 # max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
+log_backup_count: 7 # max 100 files, greater than will change to 7, log system will compress the log file when log reaches rotate set, this set is max file count
 

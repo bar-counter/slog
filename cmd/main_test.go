@@ -2,7 +2,11 @@ package main
 
 import (
 	"bytes"
+	"flag"
+	"fmt"
+	"github.com/bar-counter/slog"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"os"
 	"os/exec"
 	"testing"
@@ -34,4 +38,20 @@ func Test_package_main_error(t *testing.T) {
 		return
 	}
 	t.Fatalf("Process run with err %v, want os.Exit(2)", err)
+}
+
+func TestMainLog(t *testing.T) {
+	lagerDefinition := slog.DefaultLagerDefinition()
+	err := slog.InitWithConfig(lagerDefinition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("-> env:ENV_WEB_AUTO_HOST %s", os.Getenv("ENV_WEB_AUTO_HOST"))
+	flag.Parse()
+	log.Printf("=> now version %v", cliVersion)
+
+	slog.Debug("this is debug")
+	slog.Infof("this is info %v", "some info")
+	slog.Warn("this is warn")
+	slog.Error("this is error", fmt.Errorf("some error"))
 }

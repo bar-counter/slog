@@ -42,6 +42,68 @@ $ echo "go mod vendor"
 
 - golang sdk 1.17+
 
+## usage
+
+- use `slog.DefaultLagerDefinition()`
+
+```go
+package main
+import (
+  "fmt"
+  "github.com/bar-counter/slog"
+  "testing"
+)
+
+func TestMainLog(t *testing.T) {
+  lagerDefinition := slog.DefaultLagerDefinition()
+  err := slog.InitWithConfig(lagerDefinition)
+  if err != nil {
+    t.Fatal(err)
+  }
+
+  slog.Debug("this is debug")
+  slog.Infof("this is info %v", "some info")
+  slog.Warn("this is warn")
+  slog.Error("this is error", fmt.Errorf("some error"))
+}
+```
+
+- load with `*.yaml`
+
+```yaml
+writers: file,stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
+logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
+logger_file: logs/foo.log
+log_format_text: true # format `false` will format json, `true` will show std
+rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max
+log_rotate_date: 1 # max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
+log_rotate_size: 8 # max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
+log_backup_count: 7 # max 100 files, greater than will change to 7, log system will compress the log file when log reaches rotate set, this set is max file count
+```
+
+- use `slog.InitWithFile("log.yaml")`
+
+```go
+package main
+
+import (
+    "fmt"
+	"github.com/bar-counter/slog"
+)
+
+func main() {
+  err := slog.InitWithFile("log.yaml")
+  if err != nil {
+    panic(err)
+  }
+
+  slog.Debug("this is debug")
+  slog.Infof("this is info %v", "some info")
+  slog.Warn("this is warn")
+  slog.Error("this is error", fmt.Errorf("some error"))
+}
+```
+
 # dev
 
 ```bash
