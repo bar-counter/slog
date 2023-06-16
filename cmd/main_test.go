@@ -2,11 +2,9 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"github.com/bar-counter/slog"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"os"
 	"os/exec"
 	"testing"
@@ -46,9 +44,6 @@ func TestMainLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	log.Printf("-> env:ENV_WEB_AUTO_HOST %s", os.Getenv("ENV_WEB_AUTO_HOST"))
-	flag.Parse()
-	log.Printf("=> now version %v", cliVersion)
 
 	slog.Debug("this is debug")
 	slog.Infof("this is info %v", "some info")

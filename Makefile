@@ -91,6 +91,7 @@ cleanBuild:
 
 cleanLog:
 	-@$(RM) -r ${ENV_ROOT_LOG_PATH}
+	@$(RM) -r **/logs/
 	@echo "~> finish clean path: ${ENV_ROOT_LOG_PATH}"
 
 cleanTestData:
