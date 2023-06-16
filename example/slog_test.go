@@ -1,0 +1,145 @@
+package example
+
+import (
+	"fmt"
+	"github.com/bar-counter/slog"
+	"github.com/bar-counter/slog/lager"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
+
+func Test_default(t *testing.T) {
+	currentFolderPath, err := getCurrentFolderPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logPath := filepath.Join(currentFolderPath, "testdata", "chassis.json")
+	lagerDefinition := slog.DefaultLagerDefinition()
+	lagerDefinition.LoggerFile = "testdata/chassis.json"
+	err = slog.InitWithConfig(lagerDefinition)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		slog.Infof("Hi %s, system is starting up ...", "paas-bot")
+		slog.Info("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Debug("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Warn("failed-to-do-something", lager.Data{
+			"info": "something",
+		})
+
+		err = fmt.Errorf("this is an error")
+		slog.Error("failed-to-do-something", err)
+
+		slog.Info("shutting-down")
+		t.Logf("~> mock _slog")
+		// do _slog
+		t.Logf("~> do _slog")
+		// verify _slog
+		assert.Equal(t, "", "")
+	}
+
+	time.Sleep(5 * time.Second)
+
+	assert.True(t, pathExistsFast(logPath))
+}
+
+func Test_yml_slog(t *testing.T) {
+	// mock _slog
+	currentFolderPath, err := getCurrentFolderPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logPath := filepath.Join(currentFolderPath, "testdata", "foo.log")
+
+	err = slog.InitWithFile(filepath.Join(currentFolderPath, "log.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		slog.Infof("Hi %s, system is starting up ...", "paas-bot")
+		slog.Info("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Debug("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Warn("failed-to-do-something", lager.Data{
+			"info": "something",
+		})
+
+		err = fmt.Errorf("this is an error")
+		slog.Error("failed-to-do-something", err)
+
+		slog.Info("shutting-down")
+		t.Logf("~> mock _slog")
+		// do _slog
+		t.Logf("~> do _slog")
+		// verify _slog
+		assert.Equal(t, "", "")
+	}
+
+	time.Sleep(5 * time.Second)
+
+	assert.Truef(t, pathExistsFast(logPath), "want %s to exist", logPath)
+
+}
+
+func TestLogSingleLineJson(t *testing.T) {
+	// mock LogJson
+
+	currentFolderPath, err := getCurrentFolderPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonLogPath := filepath.Join(currentFolderPath, "testdata", "single_line_json.log")
+	if pathExistsFast(jsonLogPath) {
+		errRm := os.Remove(jsonLogPath)
+		if errRm != nil {
+			t.Fatal(errRm)
+		}
+	}
+
+	slogCfg := slog.PassLagerCfg{
+		Writers:        "file,stdout",
+		LoggerLevel:    "INFO",
+		LoggerFile:     "testdata/single_line_json.log",
+		LogFormatText:  false,
+		RollingPolicy:  "size",
+		LogRotateDate:  1,
+		LogRotateSize:  8,
+		LogBackupCount: 7,
+	}
+	err = slog.InitWithConfig(&slogCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	slog.Infof("one", slogCfg)
+
+	time.Sleep(5 * time.Second)
+
+	var logContent lager.LogContent
+
+	err = readFileAsJson(jsonLogPath, &logContent)
+	if err != nil {
+		t.Fatalf("want read json out log as one line err: %v", err)
+	}
+
+	assert.Equal(t, "INFO", logContent.Level)
+}
