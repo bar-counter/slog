@@ -13,11 +13,12 @@ import (
 
 // constant values for logrotate parameters
 const (
-	RollingPolicySize  = "size"
-	RollingPolicyDaily = "daily"
-	LogRotateDate      = 1
-	LogRotateSize      = 10
-	LogBackupCount     = 7
+	RollingPolicySize    = "size"
+	RollingPolicyDaily   = "daily"
+	LogRotateDate        = 1
+	LogRotateSize        = 10
+	LogBackupCount       = 7
+	DefaultLagerLogsFile = "logs/chassis.log"
 )
 
 // Lager struct for logger parameters
@@ -104,7 +105,7 @@ func checkPassLagerDefinition(lag *Lager) {
 	}
 
 	if lag.LoggerFile == "" {
-		lag.LoggerFile = "log/chassis.log"
+		lag.LoggerFile = DefaultLagerLogsFile
 	}
 
 	if lag.RollingPolicy == "" {
@@ -179,7 +180,7 @@ func DefaultLagerDefinition() *PassLagerCfg {
 	cfg := PassLagerCfg{
 		Writers:        "stdout,file",
 		LoggerLevel:    "DEBUG",
-		LoggerFile:     "logs/chassis.log",
+		LoggerFile:     DefaultLagerLogsFile,
 		LogFormatText:  false,
 		RollingPolicy:  RollingPolicySize,
 		LogRotateDate:  1,
