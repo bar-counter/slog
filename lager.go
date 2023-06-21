@@ -214,7 +214,7 @@ func DefaultLagerDefinition() *PassLagerCfg {
 		LoggerLevel:    "DEBUG",
 		LoggerFile:     "",
 		LogHideLineno:  false,
-		LogFormatText:  false,
+		LogFormatText:  true,
 		RollingPolicy:  RollingPolicySize,
 		LogRotateDate:  1,
 		LogRotateSize:  10,

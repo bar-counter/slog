@@ -17,10 +17,10 @@ func Test_DefaultLagerDefinition(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	logPath := filepath.Join(currentFolderPath, "testdata", "chassis.json")
+	logPath := filepath.Join(currentFolderPath, "testdata", "chassis.log")
 	lagerDefinition := slog.DefaultLagerDefinition()
 	lagerDefinition.Writers = "stdout,file"
-	lagerDefinition.LoggerFile = "testdata/chassis.json"
+	lagerDefinition.LoggerFile = "testdata/chassis.log"
 	err = slog.InitWithConfig(lagerDefinition)
 	if err != nil {
 		t.Fatal(err)
@@ -207,7 +207,7 @@ func TestLogSingleLineJson(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jsonLogPath := filepath.Join(currentFolderPath, "testdata", "single_line_json.log")
+	jsonLogPath := filepath.Join(currentFolderPath, "testdata", "single_line_json.json")
 	if pathExistsFast(jsonLogPath) {
 		errRm := os.Remove(jsonLogPath)
 		if errRm != nil {
@@ -218,9 +218,9 @@ func TestLogSingleLineJson(t *testing.T) {
 	slogCfg := slog.PassLagerCfg{
 		Writers:        "file,stdout",
 		LoggerLevel:    "INFO",
-		LoggerFile:     "testdata/single_line_json.log",
+		LoggerFile:     "testdata/single_line_json.json",
 		LogHideLineno:  false,
-		LogFormatText:  true,
+		LogFormatText:  false,
 		RollingPolicy:  "size",
 		LogRotateDate:  1,
 		LogRotateSize:  8,

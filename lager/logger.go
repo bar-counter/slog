@@ -155,18 +155,6 @@ func (l *logger) logs(ss []Sink, loglevel LogLevel, action string, err error, da
 	var logInfo string
 	for _, sink := range l.sinks {
 		if l.logFormatText {
-			logInfo, jsErr := log.ToJSON()
-			if jsErr != nil {
-				fmt.Printf("[lager] ToJSON() ERROR! action: %s, jserr: %s, log: %+v", action, jsErr, log)
-				// also output json marshal error event to sink
-				log.Data = Data{"Data": fmt.Sprint(logData)}
-				jsonErrData, _ := log.ToJSON()
-				sink.Log(ERROR, jsonErrData)
-				continue
-			}
-			sink.Log(loglevel, logInfo)
-
-		} else {
 			levelStr := FormatLogLevel(log.LogLevel)
 			extraData, ok := log.Data["error"].(string)
 			if ok && extraData != "" {
@@ -185,6 +173,19 @@ func (l *logger) logs(ss []Sink, loglevel LogLevel, action string, err error, da
 			}
 			logInfo = b.String()
 			sink.Log(loglevel, []byte(logInfo))
+
+		} else {
+
+			logInfo, jsErr := log.ToJSON()
+			if jsErr != nil {
+				fmt.Printf("[lager] ToJSON() ERROR! action: %s, jserr: %s, log: %+v", action, jsErr, log)
+				// also output json marshal error event to sink
+				log.Data = Data{"Data": fmt.Sprint(logData)}
+				jsonErrData, _ := log.ToJSON()
+				sink.Log(ERROR, jsonErrData)
+				continue
+			}
+			sink.Log(loglevel, logInfo)
 
 		}
 	}
