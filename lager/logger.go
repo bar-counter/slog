@@ -167,12 +167,23 @@ func (l *logger) logs(ss []Sink, loglevel LogLevel, action string, err error, da
 			sink.Log(loglevel, logInfo)
 
 		} else {
-			levelstr := FormatLogLevel(log.LogLevel)
+			levelStr := FormatLogLevel(log.LogLevel)
 			extraData, ok := log.Data["error"].(string)
 			if ok && extraData != "" {
 				extraData = " error: " + extraData
 			}
-			logInfo = log.Timestamp + " " + levelstr + " " + log.File + " " + log.Message + extraData
+			var b strings.Builder
+			b.WriteString(log.Timestamp)
+			b.WriteString(" ")
+			b.WriteString(levelStr)
+			b.WriteString(" ")
+			b.WriteString(log.File)
+			b.WriteString(" ")
+			b.WriteString(log.Message)
+			if extraData != "" {
+				b.WriteString(extraData)
+			}
+			logInfo = b.String()
 			sink.Log(loglevel, []byte(logInfo))
 
 		}
