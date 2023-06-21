@@ -1,7 +1,8 @@
 writers: file,stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
 logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
 logger_file: testdata/foo.log # "" is not writer log file, and this will cover by env: CHASSIS_HOME
-log_format_text: true # format `false` will format json, `true` will show std
+log_hide_lineno: false # `true` will hide code line number, `false` will show code line number, default is false
+log_format_text: true # format `true` will format json, `false` will show std, default is false
 rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max
 log_rotate_date: 1 # max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
 log_rotate_size: 8 # max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`

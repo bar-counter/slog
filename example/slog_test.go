@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Test_default(t *testing.T) {
+func Test_DefaultLagerDefinition(t *testing.T) {
 	currentFolderPath, err := getCurrentFolderPath()
 	if err != nil {
 		t.Fatal(err)
@@ -19,6 +19,7 @@ func Test_default(t *testing.T) {
 
 	logPath := filepath.Join(currentFolderPath, "testdata", "chassis.json")
 	lagerDefinition := slog.DefaultLagerDefinition()
+	lagerDefinition.Writers = "stdout,file"
 	lagerDefinition.LoggerFile = "testdata/chassis.json"
 	err = slog.InitWithConfig(lagerDefinition)
 	if err != nil {
@@ -50,6 +51,57 @@ func Test_default(t *testing.T) {
 		assert.Equal(t, "", "")
 	}
 
+	time.Sleep(5 * time.Second)
+
+	assert.True(t, pathExistsFast(logPath))
+}
+
+func TestHideLineno(t *testing.T) {
+	t.Logf("~> mock HideLineno")
+	// mock HideLineno
+	currentFolderPath, err := getCurrentFolderPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logPath := filepath.Join(currentFolderPath, "testdata", "hideLineno.log")
+	lagerDefinition := slog.DefaultLagerDefinition()
+	lagerDefinition.Writers = "stdout,file"
+	lagerDefinition.LogHideLineno = true
+	lagerDefinition.LoggerFile = "testdata/hideLineno.log"
+	err = slog.InitWithConfig(lagerDefinition)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		slog.Infof("Hi %s, system is starting up ...", "paas-bot")
+		slog.Info("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Debug("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Warn("failed-to-do-something", lager.Data{
+			"info": "something",
+		})
+
+		err = fmt.Errorf("this is an error")
+		slog.Error("failed-to-do-something", err)
+
+		slog.Info("shutting-down")
+		t.Logf("~> mock _slog")
+		// do _slog
+		t.Logf("~> do _slog")
+		// verify _slog
+		assert.Equal(t, "", "")
+	}
+	t.Logf("~> do HideLineno")
+	// do HideLineno
+
+	// verify HideLineno
 	time.Sleep(5 * time.Second)
 
 	assert.True(t, pathExistsFast(logPath))
@@ -167,7 +219,8 @@ func TestLogSingleLineJson(t *testing.T) {
 		Writers:        "file,stdout",
 		LoggerLevel:    "INFO",
 		LoggerFile:     "testdata/single_line_json.log",
-		LogFormatText:  false,
+		LogHideLineno:  false,
+		LogFormatText:  true,
 		RollingPolicy:  "size",
 		LogRotateDate:  1,
 		LogRotateSize:  8,
@@ -178,7 +231,7 @@ func TestLogSingleLineJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	slog.Infof("one", slogCfg)
+	slog.Infof("one %v", slogCfg)
 
 	time.Sleep(5 * time.Second)
 
@@ -195,7 +248,7 @@ func TestLogSingleLineJson(t *testing.T) {
 func TestPanicConfigErrorByWriters(t *testing.T) {
 	// mock TestPanicConfigErrorByWriters
 
-	errString := "logger_file is empty, but writers contains [ file ], please check the configuration"
+	errString := "[ logger_file ] is empty, but writers contains [ file ], please check the configuration"
 
 	if !assert.PanicsWithError(t, errString, func() {
 		// do TestPanicConfigErrorByWriters
@@ -205,5 +258,21 @@ func TestPanicConfigErrorByWriters(t *testing.T) {
 	}) {
 		// verify TestPanicConfigErrorByWriters
 		t.Fatalf("TestPanicConfigErrorByWriters should panic")
+	}
+}
+
+func TestPanicConfigErrorByLogFile(t *testing.T) {
+	// mock TestPanicConfigErrorByLogFile
+
+	errString := "[ logger_file ] is not empty, but writers does not contain [ file ], please check the configuration"
+
+	if !assert.PanicsWithError(t, errString, func() {
+		// do TestPanicConfigErrorByLogFile
+		lagerDefinition := slog.DefaultLagerDefinition()
+		lagerDefinition.LoggerFile = "testdata/bar.log"
+		_ = slog.InitWithConfig(lagerDefinition)
+	}) {
+		// verify TestPanicConfigErrorByLogFile
+		t.Fatalf("TestPanicConfigErrorByLogFile should panic")
 	}
 }

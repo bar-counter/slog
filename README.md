@@ -58,10 +58,13 @@ $ echo "go mod vendor"
 - [X] config load by `yaml file`
 - [X] support stdout and file
 - [X] color stdout support
+- [X] show/hide code line number
+- [X] format json/stdout
 - [X] rolling policy at file output
-  - log_rotate_date: max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
-  - log_rotate_size: max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
-  - log_backup_count: max 100 files, greater than will change to 7, log system will compress the log file when log reaches rotate set, this set is max file count
+    - log_rotate_date: max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
+    - log_rotate_size: max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
+    - log_backup_count: max 100 files, greater than will change to 7, log system will compress the log file when log
+      reaches rotate set, this set is max file count
 - [ ] more perfect test case coverage
 - [ ] more perfect benchmark case
 
@@ -71,23 +74,24 @@ $ echo "go mod vendor"
 
 ```go
 package main
+
 import (
-  "fmt"
-  "github.com/bar-counter/slog"
-  "testing"
+	"fmt"
+	"github.com/bar-counter/slog"
+	"testing"
 )
 
 func TestMainLog(t *testing.T) {
-  lagerDefinition := slog.DefaultLagerDefinition()
-  err := slog.InitWithConfig(lagerDefinition)
-  if err != nil {
-    t.Fatal(err)
-  }
+	lagerDefinition := slog.DefaultLagerDefinition()
+	err := slog.InitWithConfig(lagerDefinition)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-  slog.Debug("this is debug")
-  slog.Infof("this is info %v", "some info")
-  slog.Warn("this is warn")
-  slog.Error("this is error", fmt.Errorf("some error"))
+	slog.Debug("this is debug")
+	slog.Infof("this is info %v", "some info")
+	slog.Warn("this is warn")
+	slog.Error("this is error", fmt.Errorf("some error"))
 }
 ```
 
@@ -97,7 +101,8 @@ func TestMainLog(t *testing.T) {
 writers: stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
 logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
 logger_file: logs/foo.log # "" is not writer log file, and this will cover by env: CHASSIS_HOME
-log_format_text: true # format `false` will format json, `true` will show std
+log_hide_lineno: false # `true` will hide code line number, `false` will show code line number, default is false
+log_format_text: false # format `true` will format json, `false` will show std, default is false
 rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max
 log_rotate_date: 1 # max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
 log_rotate_size: 8 # max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
@@ -110,20 +115,20 @@ log_backup_count: 7 # max 100 files, greater than will change to 7, log system w
 package main
 
 import (
-    "fmt"
+	"fmt"
 	"github.com/bar-counter/slog"
 )
 
 func main() {
-  err := slog.InitWithFile("log.yaml")
-  if err != nil {
-    panic(err)
-  }
+	err := slog.InitWithFile("log.yaml")
+	if err != nil {
+		panic(err)
+	}
 
-  slog.Debug("this is debug")
-  slog.Infof("this is info %v", "some info")
-  slog.Warn("this is warn")
-  slog.Error("this is error", fmt.Errorf("some error"))
+	slog.Debug("this is debug")
+	slog.Infof("this is info %v", "some info")
+	slog.Warn("this is warn")
+	slog.Error("this is error", fmt.Errorf("some error"))
 }
 ```
 

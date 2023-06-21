@@ -38,22 +38,24 @@ type logger struct {
 	nextSession   uint64
 	data          Data
 	logFormatText bool
+	logHideLineno bool
 }
 
 // NewLoggerExt is a function which returns logger struct object
-func NewLoggerExt(component string, isFormatText bool) Logger {
+func NewLoggerExt(component string, isFormatText, isHideLineno bool) Logger {
 	return &logger{
 		component:     component,
 		task:          component,
 		sinks:         []Sink{},
 		data:          Data{},
 		logFormatText: isFormatText,
+		logHideLineno: isHideLineno,
 	}
 }
 
 // NewLogger is a function used to get new logger object
 func NewLogger(component string) Logger {
-	return NewLoggerExt(component, true)
+	return NewLoggerExt(component, true, false)
 }
 
 // RegisterSink is a function used to register sink
@@ -146,10 +148,25 @@ func (l *logger) logs(ss []Sink, loglevel LogLevel, action string, err error, da
 	}
 
 	// add file, lineno
-	addExtLogInfo(&log)
+	if !l.logHideLineno {
+		addExtLogInfo(&log)
+	}
+
 	var logInfo string
 	for _, sink := range l.sinks {
 		if l.logFormatText {
+			logInfo, jsErr := log.ToJSON()
+			if jsErr != nil {
+				fmt.Printf("[lager] ToJSON() ERROR! action: %s, jserr: %s, log: %+v", action, jsErr, log)
+				// also output json marshal error event to sink
+				log.Data = Data{"Data": fmt.Sprint(logData)}
+				jsonErrData, _ := log.ToJSON()
+				sink.Log(ERROR, jsonErrData)
+				continue
+			}
+			sink.Log(loglevel, logInfo)
+
+		} else {
 			levelstr := FormatLogLevel(log.LogLevel)
 			extraData, ok := log.Data["error"].(string)
 			if ok && extraData != "" {
@@ -158,17 +175,6 @@ func (l *logger) logs(ss []Sink, loglevel LogLevel, action string, err error, da
 			logInfo = log.Timestamp + " " + levelstr + " " + log.File + " " + log.Message + extraData
 			sink.Log(loglevel, []byte(logInfo))
 
-		} else {
-			logInfo, jserr := log.ToJSON()
-			if jserr != nil {
-				fmt.Printf("[lager] ToJSON() ERROR! action: %s, jserr: %s, log: %+v", action, jserr, log)
-				// also output json marshal error event to sink
-				log.Data = Data{"Data": fmt.Sprint(logData)}
-				jsonerrdata, _ := log.ToJSON()
-				sink.Log(ERROR, jsonerrdata)
-				continue
-			}
-			sink.Log(loglevel, logInfo)
 		}
 	}
 

@@ -27,6 +27,7 @@ type Lager struct {
 	Writers        string `yaml:"writers"`
 	LoggerLevel    string `yaml:"logger_level"`
 	LoggerFile     string `yaml:"logger_file"`
+	LogHideLineno  bool   `yaml:"log_hide_lineno"`
 	LogFormatText  bool   `yaml:"log_format_text"`
 	RollingPolicy  string `yaml:"rolling_policy"`
 	LogRotateDate  int    `yaml:"log_rotate_date"`
@@ -39,29 +40,37 @@ type PassLagerCfg struct {
 	Writers        string `yaml:"writers"`
 	LoggerLevel    string `yaml:"logger_level"`
 	LoggerFile     string `yaml:"logger_file"`
+	LogHideLineno  bool   `yaml:"log_hide_lineno"`
 	LogFormatText  bool   `yaml:"log_format_text"`
-	RollingPolicy  string `yaml:"rollingPolicy"`
+	RollingPolicy  string `yaml:"rolling_policy"`
 	LogRotateDate  int    `yaml:"log_rotate_date"`
 	LogRotateSize  int    `yaml:"log_rotate_size"`
 	LogBackupCount int    `yaml:"log_backup_count"`
 }
 
-// Logger is the global variable for the object of lager.Logger
-var Logger lager.Logger
+// logger
+//
+//	is the global variable for the object of lager.logger
+var logger lager.Logger
 
 // logFilePath log file path
 var logFilePath string
 
-// PassLagerDefinition is having the information about loging
+// PassLagerDefinition
+//
+//	is having the information about logging
 var PassLagerDefinition *PassLagerCfg = DefaultLagerDefinition()
 
-// Initialize Build constructs a *Lager.Logger with the configured parameters.
-func Initialize(writers, loggerLevel, loggerFile, rollingPolicy string, logFormatText bool,
+// initialize
+//
+//	Build constructs a *Lager.logger with the configured parameters.
+func initialize(writers, loggerLevel, loggerFile, rollingPolicy string, logFormatText, logHideLineno bool,
 	LogRotateDate, LogRotateSize, LogBackupCount int) {
 	lag := &Lager{
 		Writers:        writers,
 		LoggerLevel:    loggerLevel,
 		LoggerFile:     loggerFile,
+		LogHideLineno:  logHideLineno,
 		LogFormatText:  logFormatText,
 		RollingPolicy:  rollingPolicy,
 		LogRotateDate:  LogRotateDate,
@@ -69,15 +78,20 @@ func Initialize(writers, loggerLevel, loggerFile, rollingPolicy string, logForma
 		LogBackupCount: LogBackupCount,
 	}
 
-	Logger = newLog(lag)
+	logger = newLog(lag)
 	initLogRotate(logFilePath, lag)
 }
 
-// newLog new log
+// newLog
+//
+//	new log
 func newLog(lag *Lager) lager.Logger {
 	checkPassLagerDefinition(lag)
 
 	if lag.LoggerFile != "" {
+		if !strings.Contains(lag.Writers, "file") {
+			panic(fmt.Errorf("[ logger_file ] is not empty, but writers does not contain [ file ], please check the configuration"))
+		}
 		if filepath.IsAbs(lag.LoggerFile) {
 			createLogFile("", lag.LoggerFile)
 			logFilePath = filepath.Join("", lag.LoggerFile)
@@ -87,8 +101,7 @@ func newLog(lag *Lager) lager.Logger {
 		}
 	} else {
 		if strings.Contains(lag.Writers, "file") {
-			panic(fmt.Errorf("logger_file is empty, but writers contains [ file ], please check the configuration"))
-
+			panic(fmt.Errorf("[ logger_file ] is empty, but writers contains [ file ], please check the configuration"))
 		}
 	}
 
@@ -96,14 +109,15 @@ func newLog(lag *Lager) lager.Logger {
 	if len(strings.TrimSpace(lag.Writers)) == 0 {
 		writers = []string{"stdout"}
 	}
-	LagerInit(Config{
+	lagerInit(Config{
 		Writers:       writers,
 		LoggerLevel:   lag.LoggerLevel,
 		LoggerFile:    logFilePath,
+		LogHideLineno: lag.LogHideLineno,
 		LogFormatText: lag.LogFormatText,
 	})
 
-	logger := NewLogger(lag.LoggerFile)
+	logger := newLogger(lag.LoggerFile, lag.LogFormatText, lag.LogHideLineno)
 	return logger
 }
 
@@ -157,40 +171,49 @@ func createLogFile(localPath, outputpath string) {
 	defer f.Close()
 }
 
-// readPassLagerConfigFile is unmarshal the paas lager configuration file(lager.yaml)
+// InitWithFile
+//
+//	readPassLagerConfigFile is unmarshal the paas lager configuration file(log.yaml)
 func InitWithFile(lagerFile string) error {
 	if lagerFile == "" {
 		log.Printf("log config file is empty, use default config: `%s`\n", marshalDefinition())
-		return Init()
+		return initPassLager()
 	}
 
 	passLagerDef := PassLagerCfg{}
 	yamlFile, err := ioutil.ReadFile(lagerFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v, use default config: `%s`\n", err, marshalDefinition())
-		return Init()
+		return initPassLager()
 	}
 
 	err = yaml.Unmarshal(yamlFile, &passLagerDef)
 	if err != nil {
 		log.Printf("Unmarshal: %v, use default config: `%s`\n", err, marshalDefinition())
-		return Init()
+		return initPassLager()
 	}
 
 	PassLagerDefinition = &passLagerDef
-	return Init()
+	return initPassLager()
 }
 
+// InitWithConfig
+//
+//	use pass lager configuration
 func InitWithConfig(passLagerDef *PassLagerCfg) error {
 	PassLagerDefinition = passLagerDef
-	return Init()
+	return initPassLager()
 }
 
+// DefaultLagerDefinition
+//
+//	use default lager definition
 func DefaultLagerDefinition() *PassLagerCfg {
 	cfg := PassLagerCfg{
 		Writers:        "stdout",
 		LoggerLevel:    "DEBUG",
 		LoggerFile:     "",
+		LogHideLineno:  false,
 		LogFormatText:  false,
 		RollingPolicy:  RollingPolicySize,
 		LogRotateDate:  1,
@@ -201,11 +224,12 @@ func DefaultLagerDefinition() *PassLagerCfg {
 	return &cfg
 }
 
-func Init() error {
-	Initialize(PassLagerDefinition.Writers, PassLagerDefinition.LoggerLevel,
-		PassLagerDefinition.LoggerFile, PassLagerDefinition.RollingPolicy,
-		PassLagerDefinition.LogFormatText, PassLagerDefinition.LogRotateDate,
-		PassLagerDefinition.LogRotateSize, PassLagerDefinition.LogBackupCount)
+func initPassLager() error {
+	initialize(PassLagerDefinition.Writers, PassLagerDefinition.LoggerLevel,
+		PassLagerDefinition.LoggerFile,
+		PassLagerDefinition.RollingPolicy,
+		PassLagerDefinition.LogFormatText, PassLagerDefinition.LogHideLineno,
+		PassLagerDefinition.LogRotateDate, PassLagerDefinition.LogRotateSize, PassLagerDefinition.LogBackupCount)
 
 	return nil
 }

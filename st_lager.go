@@ -19,7 +19,9 @@ const (
 	FATAL = "FATAL"
 )
 
-// Config is a struct which stores details for maintaining logs
+// Config
+//
+//	is a struct which stores details for maintaining logs
 type Config struct {
 	LoggerLevel    string
 	LoggerFile     string
@@ -29,23 +31,27 @@ type Config struct {
 	RsyslogAddr    string
 
 	LogFormatText bool
+	LogHideLineno bool
 }
 
-var config = DefaultConfig()
+var config = defaultConfig()
 var m sync.RWMutex
 
-// Writers is a map
-var Writers = make(map[string]io.Writer)
+// writers is a map
+var writers = make(map[string]io.Writer)
 
 // RegisterWriter is used to register a io writer
 func RegisterWriter(name string, writer io.Writer) {
 	m.Lock()
-	Writers[name] = writer
+	writers[name] = writer
 	m.Unlock()
 }
 
-// DefaultConfig is a function which retuns config object with default configuration
-func DefaultConfig() *Config {
+// defaultConfig
+//
+//	is a function which
+//	return config object with default configuration
+func defaultConfig() *Config {
 	return &Config{
 		LoggerLevel:    INFO,
 		LoggerFile:     "",
@@ -56,10 +62,10 @@ func DefaultConfig() *Config {
 	}
 }
 
-// LagerInit
+// lagerInit
 //
 //	is a function which initializes all config struct variables
-func LagerInit(c Config) {
+func lagerInit(c Config) {
 	if c.LoggerLevel != "" {
 		config.LoggerLevel = c.LoggerLevel
 	}
@@ -107,13 +113,15 @@ func LagerInit(c Config) {
 	}
 }
 
-// NewLogger is a function
-func NewLogger(component string) lager.Logger {
-	return NewLoggerExt(component, component)
+// newLogger
+//
+//	new st lager
+func newLogger(component string, isLogFormatText, isHideLineno bool) lager.Logger {
+	return NewLoggerExt(component, component, isLogFormatText, isHideLineno)
 }
 
 // NewLoggerExt is a function which is used to write new logs
-func NewLoggerExt(component string, appGUID string) lager.Logger {
+func NewLoggerExt(component string, appGUID string, isLogFormatText, isHideLineno bool) lager.Logger {
 	var lagerLogLevel lager.LogLevel
 	switch strings.ToUpper(config.LoggerLevel) {
 	case DEBUG:
@@ -129,12 +137,12 @@ func NewLoggerExt(component string, appGUID string) lager.Logger {
 	default:
 		panic(fmt.Errorf("unknown logger level: %s", config.LoggerLevel))
 	}
-	logger := lager.NewLoggerExt(component, config.LogFormatText)
+	logger := lager.NewLoggerExt(component, isLogFormatText, isHideLineno)
 	for _, sink := range config.Writers {
 
-		writer, ok := Writers[sink]
+		writer, ok := writers[sink]
 		if !ok {
-			log.Panic("Unknow writer: ", sink)
+			log.Panic("unknown writer: ", sink)
 		}
 		sink := lager.NewReconfigurableSink(lager.NewWriterSink(sink, writer, lager.DEBUG), lagerLogLevel)
 		logger.RegisterSink(sink)
@@ -144,41 +152,41 @@ func NewLoggerExt(component string, appGUID string) lager.Logger {
 }
 
 func Debug(action string, data ...lager.Data) {
-	Logger.Debug(action, data...)
+	logger.Debug(action, data...)
 }
 
 func Info(action string, data ...lager.Data) {
-	Logger.Info(action, data...)
+	logger.Info(action, data...)
 }
 
 func Warn(action string, data ...lager.Data) {
-	Logger.Warn(action, data...)
+	logger.Warn(action, data...)
 }
 
 func Error(action string, err error, data ...lager.Data) {
-	Logger.Error(action, err, data...)
+	logger.Error(action, err, data...)
 }
 
 func Fatal(action string, err error, data ...lager.Data) {
-	Logger.Fatal(action, err, data...)
+	logger.Fatal(action, err, data...)
 }
 
 func Debugf(format string, args ...interface{}) {
-	Logger.Debugf(format, args...)
+	logger.Debugf(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	Logger.Infof(format, args...)
+	logger.Infof(format, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	Logger.Warnf(format, args...)
+	logger.Warnf(format, args...)
 }
 
 func Errorf(err error, format string, args ...interface{}) {
-	Logger.Errorf(err, format, args...)
+	logger.Errorf(err, format, args...)
 }
 
 func Fatalf(err error, format string, args ...interface{}) {
-	Logger.Fatalf(err, format, args...)
+	logger.Fatalf(err, format, args...)
 }
