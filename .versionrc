@@ -9,10 +9,6 @@
       "section": "Bug Fixes"
     },
     {
-      "type": "chore",
-      "hidden": true
-    },
-    {
       "type": "docs",
       "hidden": true
     },
@@ -30,6 +26,22 @@
     },
     {
       "type": "test",
+      "hidden": true
+    },
+    {
+      "type": "build",
+      "hidden": true
+    },
+    {
+      "type": "ci",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "hidden": true
+    },
+    {
+      "type": "revert",
       "hidden": true
     }
   ]
