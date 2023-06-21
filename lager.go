@@ -2,6 +2,7 @@ package slog
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/bar-counter/slog/lager"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -13,12 +14,12 @@ import (
 
 // constant values for logrotate parameters
 const (
-	RollingPolicySize    = "size"
-	RollingPolicyDaily   = "daily"
-	LogRotateDate        = 1
-	LogRotateSize        = 10
-	LogBackupCount       = 7
-	DefaultLagerLogsFile = "logs/chassis.log"
+	RollingPolicySize  = "size"
+	RollingPolicyDaily = "daily"
+	LogRotateDate      = 1
+	LogRotateSize      = 10
+	LogBackupCount     = 7
+	//DefaultLagerLogsFile = "logs/chassis.log"
 )
 
 // Lager struct for logger parameters
@@ -76,13 +77,21 @@ func Initialize(writers, loggerLevel, loggerFile, rollingPolicy string, logForma
 func newLog(lag *Lager) lager.Logger {
 	checkPassLagerDefinition(lag)
 
-	if filepath.IsAbs(lag.LoggerFile) {
-		createLogFile("", lag.LoggerFile)
-		logFilePath = filepath.Join("", lag.LoggerFile)
+	if lag.LoggerFile != "" {
+		if filepath.IsAbs(lag.LoggerFile) {
+			createLogFile("", lag.LoggerFile)
+			logFilePath = filepath.Join("", lag.LoggerFile)
+		} else {
+			createLogFile(os.Getenv("CHASSIS_HOME"), lag.LoggerFile)
+			logFilePath = filepath.Join(os.Getenv("CHASSIS_HOME"), lag.LoggerFile)
+		}
 	} else {
-		createLogFile(os.Getenv("CHASSIS_HOME"), lag.LoggerFile)
-		logFilePath = filepath.Join(os.Getenv("CHASSIS_HOME"), lag.LoggerFile)
+		if strings.Contains(lag.Writers, "file") {
+			panic(fmt.Errorf("logger_file is empty, but writers contains [ file ], please check the configuration"))
+
+		}
 	}
+
 	writers := strings.Split(strings.TrimSpace(lag.Writers), ",")
 	if len(strings.TrimSpace(lag.Writers)) == 0 {
 		writers = []string{"stdout"}
@@ -98,35 +107,36 @@ func newLog(lag *Lager) lager.Logger {
 	return logger
 }
 
-// checkPassLagerDefinition check pass lager definition
+// checkPassLagerDefinition
+//
+//	check pass lager definition
 func checkPassLagerDefinition(lag *Lager) {
 	if lag.LoggerLevel == "" {
 		lag.LoggerLevel = "DEBUG"
 	}
 
-	if lag.LoggerFile == "" {
-		lag.LoggerFile = DefaultLagerLogsFile
+	if lag.LoggerFile != "" {
+		if lag.RollingPolicy == "" {
+			log.Println("RollingPolicy is empty, use default policy[size]")
+			lag.RollingPolicy = RollingPolicySize
+		} else if lag.RollingPolicy != RollingPolicyDaily && lag.RollingPolicy != RollingPolicySize {
+			log.Printf("RollingPolicy is error, RollingPolicy=%s, use default policy[size].", lag.RollingPolicy)
+			lag.RollingPolicy = RollingPolicySize
+		}
+
+		if lag.LogRotateDate <= 0 || lag.LogRotateDate > 10 {
+			lag.LogRotateDate = LogRotateDate
+		}
+
+		if lag.LogRotateSize <= 0 || lag.LogRotateSize > 64 {
+			lag.LogRotateSize = LogRotateSize
+		}
+
+		if lag.LogBackupCount < 0 || lag.LogBackupCount > 100 {
+			lag.LogBackupCount = LogBackupCount
+		}
 	}
 
-	if lag.RollingPolicy == "" {
-		log.Println("RollingPolicy is empty, use default policy[size]")
-		lag.RollingPolicy = RollingPolicySize
-	} else if lag.RollingPolicy != RollingPolicyDaily && lag.RollingPolicy != RollingPolicySize {
-		log.Printf("RollingPolicy is error, RollingPolicy=%s, use default policy[size].", lag.RollingPolicy)
-		lag.RollingPolicy = RollingPolicySize
-	}
-
-	if lag.LogRotateDate <= 0 || lag.LogRotateDate > 10 {
-		lag.LogRotateDate = LogRotateDate
-	}
-
-	if lag.LogRotateSize <= 0 || lag.LogRotateSize > 64 {
-		lag.LogRotateSize = LogRotateSize
-	}
-
-	if lag.LogBackupCount < 0 || lag.LogBackupCount > 100 {
-		lag.LogBackupCount = LogBackupCount
-	}
 }
 
 // createLogFile create log file
@@ -178,9 +188,9 @@ func InitWithConfig(passLagerDef *PassLagerCfg) error {
 
 func DefaultLagerDefinition() *PassLagerCfg {
 	cfg := PassLagerCfg{
-		Writers:        "stdout,file",
+		Writers:        "stdout",
 		LoggerLevel:    "DEBUG",
-		LoggerFile:     DefaultLagerLogsFile,
+		LoggerFile:     "",
 		LogFormatText:  false,
 		RollingPolicy:  RollingPolicySize,
 		LogRotateDate:  1,

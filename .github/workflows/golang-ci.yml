@@ -14,7 +14,9 @@ jobs:
     name: glang-ci
     strategy:
       matrix:
-        go: ['^1.17']
+        go:
+         - '^1.17'
+         - '1.17.13'
         os:
           - macos-latest
           - windows-latest
@@ -67,4 +69,6 @@ jobs:
         run: go test -benchmem -bench . ./...
 
       - name: Run test coverage
-        run: go test -cover -coverprofile coverage.txt -covermode count -tags test -coverpkg ./... -v ./...
+        run: |
+          go test -cover -coverprofile coverage.txt -covermode count -coverpkg ./... -tags test -v ./...
+          go tool cover -func coverage.txt

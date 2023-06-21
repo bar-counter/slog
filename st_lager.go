@@ -56,7 +56,9 @@ func DefaultConfig() *Config {
 	}
 }
 
-// Init is a function which initializes all config struct variables
+// LagerInit
+//
+//	is a function which initializes all config struct variables
 func LagerInit(c Config) {
 	if c.LoggerLevel != "" {
 		config.LoggerLevel = c.LoggerLevel

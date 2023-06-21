@@ -7,7 +7,16 @@
 
 ## for what
 
-- this project used to github golang lib project
+- this project used to golang log management
+
+## Contributing
+
+[![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v1.4-ff69b4.svg)](.github/CONTRIBUTING_DOC/CODE_OF_CONDUCT.md)
+[![GitHub contributors](https://img.shields.io/github/contributors/bridgewwater/gin-api-swagger-temple)](https://github.com/bridgewwater/gin-api-swagger-temple/graphs/contributors)
+
+We welcome community contributions to this project.
+
+Please read [Contributor Guide](.github/CONTRIBUTING_DOC/CONTRIBUTING.md) for more information on how to get started.
 
 ## depends
 
@@ -42,6 +51,20 @@ $ echo "go mod vendor"
 
 - golang sdk 1.17+
 
+## Features
+
+- [X] easy API to use, `slog.Debug("this is debug")`...
+- [X] easy config new `slog.DefaultLagerDefinition()`
+- [X] config load by `yaml file`
+- [X] support stdout and file
+- [X] color stdout support
+- [X] rolling policy at file output
+  - log_rotate_date: max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`
+  - log_rotate_size: max 64M, greater than will change to 10, rotate size，coordinate `rollingPolicy: size`
+  - log_backup_count: max 100 files, greater than will change to 7, log system will compress the log file when log reaches rotate set, this set is max file count
+- [ ] more perfect test case coverage
+- [ ] more perfect benchmark case
+
 ## usage
 
 - use `slog.DefaultLagerDefinition()`
@@ -71,9 +94,9 @@ func TestMainLog(t *testing.T) {
 - load with `*.yaml`
 
 ```yaml
-writers: file,stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
+writers: stdout # file,stdout。`file` will let `logger_file` to file，`stdout` will show at std, most of time use bose
 logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
-logger_file: logs/foo.log
+logger_file: logs/foo.log # "" is not writer log file, and this will cover by env: CHASSIS_HOME
 log_format_text: true # format `false` will format json, `true` will show std
 rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max
 log_rotate_date: 1 # max 10 days, greater than will change to 1, rotate date, coordinate `log_rotate_date: daily`

@@ -55,6 +55,54 @@ func Test_default(t *testing.T) {
 	assert.True(t, pathExistsFast(logPath))
 }
 
+func TestNoFileOut(t *testing.T) {
+	t.Logf("~> mock NoFileOut")
+	// mock NoFileOut
+	currentFolderPath, err := getCurrentFolderPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logsPath := filepath.Join(currentFolderPath, "testdata", "logs")
+	lagerDefinition := slog.DefaultLagerDefinition()
+	err = slog.InitWithConfig(lagerDefinition)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("~> do NoFileOut")
+	// do NoFileOut
+	for i := 0; i < 10; i++ {
+		slog.Infof("Hi %s, system is starting up ...", "paas-bot")
+		slog.Info("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Debug("check-info", lager.Data{
+			"info": "something",
+		})
+
+		slog.Warn("failed-to-do-something", lager.Data{
+			"info": "something",
+		})
+
+		err = fmt.Errorf("this is an error")
+		slog.Error("failed-to-do-something", err)
+
+		slog.Info("shutting-down")
+		t.Logf("~> mock _slog")
+		// do _slog
+		t.Logf("~> do _slog")
+		// verify _slog
+		assert.Equal(t, "", "")
+	}
+
+	// verify NoFileOut
+	time.Sleep(5 * time.Second)
+
+	assert.False(t, pathExistsFast(logsPath))
+}
+
 func Test_yml_slog(t *testing.T) {
 	// mock _slog
 	currentFolderPath, err := getCurrentFolderPath()
@@ -142,4 +190,20 @@ func TestLogSingleLineJson(t *testing.T) {
 	}
 
 	assert.Equal(t, "INFO", logContent.Level)
+}
+
+func TestPanicConfigErrorByWriters(t *testing.T) {
+	// mock TestPanicConfigErrorByWriters
+
+	errString := "logger_file is empty, but writers contains [ file ], please check the configuration"
+
+	if !assert.PanicsWithError(t, errString, func() {
+		// do TestPanicConfigErrorByWriters
+		lagerDefinition := slog.DefaultLagerDefinition()
+		lagerDefinition.Writers = "stdout,file"
+		_ = slog.InitWithConfig(lagerDefinition)
+	}) {
+		// verify TestPanicConfigErrorByWriters
+		t.Fatalf("TestPanicConfigErrorByWriters should panic")
+	}
 }
