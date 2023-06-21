@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/bar-counter/slog/compare/v1.2.0...v1.3.0) (2023-06-21)
+
+
+### Features
+
+* add log_hide_lineno LogHideLineno config ([f5fe284](https://github.com/bar-counter/slog/commit/f5fe284a3c6cfe880e916f7ad56092d4b9234782))
+* let log_format_text LogFormatText default false is json, true is stdout ([6b4dd46](https://github.com/bar-counter/slog/commit/6b4dd4600a943418d7a0bcd2410244aca68fec3a))
+
+
+### Performance
+
+* change log_format_text use strings.Builder ([98fd08e](https://github.com/bar-counter/slog/commit/98fd08e992c12f4c8699859b1b3b07208685eddf))
+
 ## [1.2.0](https://github.com/bar-counter/slog/compare/v1.1.0...v1.2.0) (2023-06-21)
 
 
