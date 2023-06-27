@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/bar-counter/slog/compare/v1.3.0...v1.4.0) (2023-06-27)
+
+
+### 👷‍ Build System
+
+* support windows busybox ([a64782b](https://github.com/bar-counter/slog/commit/a64782bd30c2a3fd9f883a573ad1f7cf12ee6839))
+
+
+### ✨ Features
+
+* remove useless test code at package example ([30a79a8](https://github.com/bar-counter/slog/commit/30a79a85696fa653447b524daf7616defca31013))
+
 ## [1.3.0](https://github.com/bar-counter/slog/compare/v1.2.0...v1.3.0) (2023-06-21)
 
 
