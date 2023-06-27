@@ -12,7 +12,7 @@
 ## Contributing
 
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v1.4-ff69b4.svg)](.github/CONTRIBUTING_DOC/CODE_OF_CONDUCT.md)
-[![GitHub contributors](https://img.shields.io/github/contributors/bridgewwater/gin-api-swagger-temple)](https://github.com/bridgewwater/gin-api-swagger-temple/graphs/contributors)
+[![GitHub contributors](https://img.shields.io/github/contributors/bar-counter/slog)](https://github.com/bar-counter/slog/graphs/contributors)
 
 We welcome community contributions to this project.
 
