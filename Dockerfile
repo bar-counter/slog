@@ -3,7 +3,7 @@
 # Author: sinlov
 # dockerfile offical document https://docs.docker.com/engine/reference/builder/
 # https://hub.docker.com/_/golang
-FROM golang:1.17.13-buster as builder
+FROM golang:1.17.13 as builder
 
 ARG GO_ENV_PACKAGE_NAME=github.com/bar-counter/slog
 ARG GO_ENV_ROOT_BUILD_BIN_NAME=slog

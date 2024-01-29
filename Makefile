@@ -8,41 +8,44 @@ ROOT_NAME ?=slog
 
 ## MakeDocker.mk settings start
 ROOT_OWNER?=bar-counter
-ROOT_PARENT_SWITCH_TAG=1.17.13-buster
+ROOT_PARENT_SWITCH_TAG=1.17.13
 # for image local build
-INFO_TEST_BUILD_DOCKER_PARENT_IMAGE=golang
+INFO_TEST_BUILD_DOCKER_PARENT_IMAGE =golang
 # for image running
-INFO_BUILD_DOCKER_FROM_IMAGE=alpine:3.17
-INFO_BUILD_DOCKER_FILE=Dockerfile
-INFO_TEST_BUILD_DOCKER_FILE=Dockerfile.s6
+INFO_BUILD_DOCKER_FROM_IMAGE =alpine:3.17
+INFO_BUILD_DOCKER_FILE =Dockerfile
+INFO_TEST_BUILD_DOCKER_FILE =build.dockerfile
 ## MakeDocker.mk settings end
+## MakeDockerCompose.mk settings start
+INFO_DOCKER_COMPOSE_DEFAULT_FILE ?=docker-compose.yml
+## MakeDockerCompose.mk settings end
 
 ## run info start
-ENV_RUN_INFO_HELP_ARGS =-h
+ENV_RUN_INFO_HELP_ARGS= -h
 ENV_RUN_INFO_ARGS=
 ## run info end
 
 ## build dist env start
 # change to other build entrance
-ENV_ROOT_BUILD_ENTRANCE =main.go
+ENV_ROOT_BUILD_ENTRANCE =cmd/slog/main.go
 ENV_ROOT_BUILD_BIN_NAME =${ROOT_NAME}
 ENV_ROOT_BUILD_PATH =build
 ENV_ROOT_BUILD_BIN_PATH =${ENV_ROOT_BUILD_PATH}/${ENV_ROOT_BUILD_BIN_NAME}
 ENV_ROOT_LOG_PATH =logs/
 # linux windows darwin  list as: go tool dist list
-ENV_DIST_GO_OS=linux
+ENV_DIST_GO_OS =linux
 # amd64 386
-ENV_DIST_GO_ARCH=amd64
+ENV_DIST_GO_ARCH =amd64
 # mark for dist and tag helper
-ENV_ROOT_MANIFEST_PKG_JSON?=package.json
-ENV_ROOT_MAKE_FILE?=Makefile
-ENV_ROOT_CHANGELOG_PATH?=CHANGELOG.md
+ENV_ROOT_MANIFEST_PKG_JSON ?=package.json
+ENV_ROOT_MAKE_FILE ?=Makefile
+ENV_ROOT_CHANGELOG_PATH ?=CHANGELOG.md
 ## build dist env end
 
 ## go test MakeGoTest.mk start
 # ignore used not matching mode
 # set ignore of test case like grep -v -E "vendor|go_fatal_error" to ignore vendor and go_fatal_error package
-ENV_ROOT_TEST_INVERT_MATCH ?= "vendor|go_fatal_error|robotn|shirou"
+ENV_ROOT_TEST_INVERT_MATCH?="vendor|go_fatal_error|robotn|shirou"
 ifeq ($(OS),Windows_NT)
 ENV_ROOT_TEST_LIST?=./...
 else
@@ -61,6 +64,7 @@ include z-MakefileUtils/MakeGoTestIntegration.mk
 include z-MakefileUtils/MakeGoDist.mk
 # include MakeDockerRun.mk for docker run
 include z-MakefileUtils/MakeDocker.mk
+include z-MakefileUtils/MakeDockerCompose.mk
 
 all: env
 
@@ -93,14 +97,15 @@ cleanBuild:
 
 cleanLog:
 	@$(RM) -r ${ENV_ROOT_LOG_PATH}
-	@$(RM) -r **/logs/
 	@echo "~> finish clean path: ${ENV_ROOT_LOG_PATH}"
 
-cleanTestData:
-	$(info -> notes: remove folder [ testdata ] unable to match subdirectories)
+cleanTest:
 	@$(RM) coverage.txt
 	@$(RM) coverage.out
 	@$(RM) profile.txt
+
+cleanTestData:
+	$(info -> notes: remove folder [ testdata ] unable to match subdirectories)
 	@$(RM) -r **/testdata
 	@$(RM) -r **/**/testdata
 	@$(RM) -r **/**/**/testdata
@@ -109,10 +114,10 @@ cleanTestData:
 	@$(RM) -r **/**/**/**/**/**/testdata
 	$(info -> finish clean folder [ testdata ])
 
-clean: cleanTestData cleanBuild cleanLog
+clean: cleanTest cleanBuild cleanLog
 	@echo "~> clean finish"
 
-cleanAll: clean cleanAllDist
+cleanAll: clean
 	@echo "~> clean all finish"
 
 init:
@@ -124,7 +129,7 @@ init:
 	@echo "~> you can use [ make help ] see more task"
 	-go mod verify
 
-dep: modVerify modDownload modTidy modVendor
+dep: modVerify modDownload modTidy
 	@echo "-> just check depends below"
 
 style: modTidy modVerify modFmt modLintRun
@@ -132,7 +137,7 @@ style: modTidy modVerify modFmt modLintRun
 ci: modTidy modVerify modFmt modVet modLintRun test
 
 buildMain:
-	@echo "-> start build local OS"
+	@echo "-> start build local OS: ${PLATFORM} ${OS_BIT}"
 ifeq ($(OS),Windows_NT)
 	@go build -o $(subst /,\,${ENV_ROOT_BUILD_BIN_PATH}).exe ${ENV_ROOT_BUILD_ENTRANCE}
 	@echo "-> finish build out path: $(subst /,\,${ENV_ROOT_BUILD_BIN_PATH}).exe"
@@ -143,15 +148,15 @@ endif
 
 dev: export ENV_WEB_AUTO_HOST=true
 dev: cleanBuild buildMain
-ifeq ($(OS),windows)
+ifeq ($(OS),Windows_NT)
 	$(subst /,\,${ENV_ROOT_BUILD_BIN_PATH}).exe ${ENV_RUN_INFO_ARGS}
 else
 	${ENV_ROOT_BUILD_BIN_PATH} ${ENV_RUN_INFO_ARGS}
 endif
 
-cloc:
-	@echo "see: https://stackoverflow.com/questions/26152014/cloc-ignore-exclude-list-file-clocignore"
-	cloc --exclude-list-file=.clocignore .
+runHelp: export CLI_VERBOSE=false
+runHelp:
+	go run -v ${ENV_ROOT_BUILD_ENTRANCE} ${ENV_RUN_INFO_HELP_ARGS}
 
 helpProjectRoot:
 	@echo "Help: Project root Makefile"
@@ -180,9 +185,11 @@ endif
 	@echo "~> make testCoverageBrowser - see coverage at browser --invert-match by config"
 	@echo "~> make testBenchmark       - run go test benchmark case all"
 	@echo "~> make ci                  - run CI tools tasks"
+	@echo "~> make style               - run local code fmt and style check"
 	@echo "~> make dev                 - run as develop mode"
-	@echo "~> make run                 - run as ordinary mode"
+	@echo "~> make runHelp             - run use ${ENV_RUN_INFO_HELP_ARGS}"
 
-help: helpGoMod helpGoTest helpDocker helpGoDist helpProjectRoot
+help: helpGoMod helpGoTest helpGoDist helpDocker helpProjectRoot
 	@echo ""
-	@echo "-- more info see Makefile include: MakeGoMod.mk MakeGoTest.mk MakeGoTestIntegration.mk MakeGoDist.mk MakeDocker.mk --"
+	@echo "-- more info see Makefile include: MakeGoMod.mk MakeGoTest.mk MakeGoTestIntegration.mk MakeDocker.mk --"
+
