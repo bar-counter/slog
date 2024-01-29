@@ -1,4 +1,4 @@
-[![golang-ci](https://github.com/bar-counter/slog/actions/workflows/golang-ci.yml/badge.svg)](https://github.com/bar-counter/slog/actions/workflows/golang-ci.yml)
+[![ci](https://github.com/bar-counter/slog/actions/workflows/ci.yml/badge.svg)](https://github.com/bar-counter/slog/actions/workflows/ci.yml)
 [![go mod version](https://img.shields.io/github/go-mod/go-version/bar-counter/slog?label=go.mod)](https://github.com/bar-counter/slog)
 [![GoDoc](https://godoc.org/github.com/bar-counter/slog?status.png)](https://godoc.org/github.com/bar-counter/slog/)
 [![GoReportCard](https://goreportcard.com/badge/github.com/bar-counter/slog)](https://goreportcard.com/report/github.com/bar-counter/slog)
