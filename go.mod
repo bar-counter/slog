@@ -3,7 +3,7 @@ module github.com/bar-counter/slog
 go 1.17
 
 require (
-	github.com/onsi/ginkgo/v2 v2.19.0
+	github.com/onsi/ginkgo/v2 v2.19.1
 	github.com/stretchr/testify v1.9.0
 	gopkg.in/yaml.v3 v3.0.1
 )
