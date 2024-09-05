@@ -5,16 +5,17 @@ on:
     paths-ignore:
       - '**/README.md'
     branches:
-      - 'main'
+      # - 'main'
       - 'release-*'
-      - 'FE-*'
       - '*-feature-*'
-      - 'BF-*'
+      - '*-enhancement-*'
+      - '*-hotfix-*'
       - '*-bug-*'
+      - '*-documentation-*'
+      - 'BF-*'
+      - 'FE-*'
       - 'PU-*'
       - 'DOC-*'
-      - '*-documentation-*'
-      - '*-hotfix-*'
     tags:
       - '*' # Push events to matching *, i.e. 1.0.0 v1.0, v20.15.10
   pull_request:
@@ -30,7 +31,7 @@ on:
     #   - 'DOC-*'
     #   - 'hotfix-*'
 
-permissions:
+permissions: # https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions#permissions
   contents: write
   discussions: write
 
@@ -56,6 +57,7 @@ jobs:
     secrets: inherit
     with:
       version_name: latest
+      go_build_id: ${{ needs.version.outputs.short_sha }}
 
   go-release-platform:
     name: go-release-platform
@@ -67,7 +69,8 @@ jobs:
     secrets: inherit
     with:
       version_name: ${{ needs.version.outputs.tag_name }}
-      upload_artifact_name: go-release
+      go_build_id: ${{ needs.version.outputs.short_sha }}
+      # upload_artifact_name: go-release
 
   deploy-tag:
     needs:
@@ -82,4 +85,4 @@ jobs:
       prerelease: true
       tag_name: ${{ needs.version.outputs.tag_name }}
       tag_changes: ${{ needs.version.outputs.cc_changes }}
-      download_artifact_name: go-release # download artifact name, download from actions/upload-artifact, as: {download_artifact_name}-{tag_name}-*, empty is not download
+      # download_artifact_name: go-release # download artifact name, download from actions/upload-artifact, as: {download_artifact_name}-{tag_name}-*, empty is not download

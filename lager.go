@@ -90,7 +90,7 @@ func newLog(lag *Lager) lager.Logger {
 
 	if lag.LoggerFile != "" {
 		if !strings.Contains(lag.Writers, "file") {
-			panic(fmt.Errorf("[ logger_file ] is not empty, but writers does not contain [ file ], please check the configuration"))
+			panic(fmt.Errorf("[ logger_file ] is not empty, but config [ writers ] does not contain [ file ], please check the configuration"))
 		}
 		if filepath.IsAbs(lag.LoggerFile) {
 			createLogFile("", lag.LoggerFile)
