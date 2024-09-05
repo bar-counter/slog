@@ -1,6 +1,6 @@
 writers: stdout # file,stdout.`file` will let `logger_file` to file，`stdout` will show at std, most of the time use bose
 logger_level: DEBUG # DEBUG INFO WARN ERROR FATAL
-logger_file: logs/foo.log # "" is not writer log file, and this will cover by env: CHASSIS_HOME
+# logger_file: logs/foo.log # "" is not writer log file, and this will cover by env: CHASSIS_HOME
 log_hide_lineno: false # `true` will hide code line number, `false` will show code line number, default is false
 log_format_text: false # format_text `false` will format json, `true` will out stdout
 rolling_policy: size # rotate policy, can choose as: daily, size. `daily` store as daily，`size` will save as max

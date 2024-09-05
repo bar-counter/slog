@@ -2,13 +2,14 @@ package example_test
 
 import (
 	"fmt"
-	"github.com/bar-counter/slog"
-	"github.com/bar-counter/slog/lager"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/bar-counter/slog"
+	"github.com/bar-counter/slog/lager"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_DefaultLagerDefinition(t *testing.T) {
@@ -264,7 +265,7 @@ func TestPanicConfigErrorByWriters(t *testing.T) {
 func TestPanicConfigErrorByLogFile(t *testing.T) {
 	// mock TestPanicConfigErrorByLogFile
 
-	errString := "[ logger_file ] is not empty, but writers does not contain [ file ], please check the configuration"
+	errString := "[ logger_file ] is not empty, but config [ writers ] does not contain [ file ], please check the configuration"
 
 	if !assert.PanicsWithError(t, errString, func() {
 		// do TestPanicConfigErrorByLogFile

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bar-counter/slog/lager"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -90,7 +89,7 @@ func newLog(lag *Lager) lager.Logger {
 
 	if lag.LoggerFile != "" {
 		if !strings.Contains(lag.Writers, "file") {
-			panic(fmt.Errorf("[ logger_file ] is not empty, but writers does not contain [ file ], please check the configuration"))
+			panic(fmt.Errorf("[ logger_file ] is not empty, but config [ writers ] does not contain [ file ], please check the configuration"))
 		}
 		if filepath.IsAbs(lag.LoggerFile) {
 			createLogFile("", lag.LoggerFile)
@@ -181,7 +180,7 @@ func InitWithFile(lagerFile string) error {
 	}
 
 	passLagerDef := PassLagerCfg{}
-	yamlFile, err := ioutil.ReadFile(lagerFile)
+	yamlFile, err := os.ReadFile(lagerFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v, use default config: `%s`\n", err, marshalDefinition())
 		return initPassLager()
