@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bar-counter/slog/lager"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -181,7 +180,7 @@ func InitWithFile(lagerFile string) error {
 	}
 
 	passLagerDef := PassLagerCfg{}
-	yamlFile, err := ioutil.ReadFile(lagerFile)
+	yamlFile, err := os.ReadFile(lagerFile)
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v, use default config: `%s`\n", err, marshalDefinition())
 		return initPassLager()
