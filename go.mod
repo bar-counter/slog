@@ -1,11 +1,11 @@
 module github.com/bar-counter/slog
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.1
 
 require (
-	github.com/onsi/ginkgo/v2 v2.27.5
+	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
 )
